@@ -22,14 +22,17 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(downloader)
 library(readxl)
+library(foreign)
 library(stringr)
 library(psych)
 library(vtable)
+library(ggrepel)
 ```
 
 ```{r load_data}
 # Import data
 
+############# Survey of owners of BEVs in California #############
 # Read xlsx
 # Temporary file
 temp_excel <- tempfile()
@@ -39,6 +42,41 @@ download("https://datadryad.org/stash/downloads/file_stream/153034",
          mode = "wb")
 # Read xlxs from temp file
 BEV_FCV <- read_excel(temp_excel)
+
+############# GDP per capita (current US$) #############
+# Download zip using downloader package
+# Temporary file
+temp_zip <- tempfile()
+# Temporary directory
+temp_dir <- tempdir()
+# Download using downloader library
+download("https://api.worldbank.org/v2/en/indicator/NY.GDP.PCAP.CD?downloadformat=csv",
+         destfile = temp_zip, # Save temp file
+         mode = "wb")
+# Unzip temporary file in temporary directory
+unzip(temp_zip, exdir = temp_dir)
+
+# Read csv file using foreign package
+GDP <- read_csv(paste(temp_dir, "API_NY.GDP.PCAP.CD_DS2_en_csv_v2_5358417.csv", sep = "/"), skip = 3)
+
+############# CO2 emissions (metric tons per capita) #############
+# Download zip using downloader package
+# Temporary file
+temp_zip <- tempfile()
+# Temporary directory
+temp_dir <- tempdir()
+# Download using downloader library
+download("https://api.worldbank.org/v2/en/indicator/EN.ATM.CO2E.PC?downloadformat=csv",
+         destfile = temp_zip, # Save temp file
+         mode = "wb")
+# Unzip temporary file in temporary directory
+unzip(temp_zip, exdir = temp_dir)
+
+# Read csv file using foreign package
+CO2_emissions <- read_csv(paste(temp_dir, "API_EN.ATM.CO2E.PC_DS2_en_csv_v2_5358914.csv", sep = "/"), skip = 3)
+
+# Read csv of the ISO 3166 Countries with Regional Codes (taken from Luke Duncalfe's GitHub reop)
+countries_ISO3166 <- read.csv("https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes/blob/master/all/all.csv?raw=true")
 
 ```
 
@@ -198,7 +236,197 @@ It's important to note that a limitation of this data set is that we don't have 
 + When distinguished by the highest level of education, we find the more educated owners of BEVs in California consider more important reducing GGE than less educated owners.
 + When looking at the correlation between the household income in thousands and the mean importance of reducing GGE of BEV owners in California grouped by educational level, the wealthier and more educated care a little bit less than the less affluent.
 
+## GDP per Capita and CO2 Emissions
+
+
+### Data Wrangling
+
+Here's the data set we have cleaned and prepared for our analysis:
+
+```{r tidy_data2}
+# Clean & wrangle data
+
+# GDP per Capita tidy
+GDP_long <- GDP %>%
+  select(-`Indicator Name`, -`Indicator Code`) %>%
+  pivot_longer(!`Country Name`:`Country Code`, names_to = "year", values_to = "GDP_per_cap", values_drop_na = TRUE)
+
+# CO2 Emissions tidy
+CO2emissions_long <- CO2_emissions %>%
+  select(-`Indicator Name`, -`Indicator Code`) %>%
+  pivot_longer(!`Country Name`:`Country Code`, names_to = "year", values_to = "CO2_m_tons_per_cap", values_drop_na = TRUE)
+
+# Join between GDP per Capita and CO2 Emissions tidy
+GDP_CO2Emissions <- inner_join(GDP_long, CO2emissions_long, by = c("Country Name", "Country Code", "year")) %>%
+  mutate(year = as.double(year))
+
+# Get country regions using ISO3166
+code_region <- countries_ISO3166 %>%
+  select(alpha.3, region)
+
+# Join GDP per Capita and CO2 Emissions with the country regions
+GDP_CO2Emissions_Regions <- right_join(code_region, GDP_CO2Emissions, by = c("alpha.3" = "Country Code"))
+
+# Compute means for each region
+Totals_GDP_CO2Emissions_Regions <- GDP_CO2Emissions_Regions %>%
+  group_by(region, year) %>%
+  summarise(mean_GDP_per_cap = mean(GDP_per_cap),
+            mean_CO2_m_tons_per_cap = mean(CO2_m_tons_per_cap))
+
+```
+### Summary Statistics
+
+```{r stats2}
+# Get Summary Statistics
+GDP_CO2Emissions_Regions %>% st()
+
+Totals_GDP_CO2Emissions_Regions %>% st()
+
+```
+
+### Data Visualization and Discussion
+
 ```{r plot_data4}
+# Plot & visualize data
+GDP_CO2Emissions %>%
+  filter(`Country Name` == "North America" | `Country Name` == "Latin America & Caribbean" | `Country Name` == "Europe & Central Asia" | `Country Name` == "East Asia & Pacific" | `Country Name` == "South Asia" | `Country Name` == "Middle East & North Africa" | `Country Name` == "Sub-Saharan Africa") %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(y = GDP_per_cap), color = "green4") +
+  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4") +
+  facet_wrap(~`Country Name`, nrow = 1) +
+  scale_y_continuous(name = "GDP per Capita",
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
+  theme(axis.title.y = element_text(color = "green4"),
+        axis.title.y.right = element_text(color = "red4"))
+  
+```
+
+
+```{r plot_data5}
+# Plot & visualize data
+GDP_CO2Emissions$`Country Name` <- as.factor(GDP_CO2Emissions$`Country Name`)
+GDP_CO2Emissions$`Country Name` <- factor(GDP_CO2Emissions$`Country Name`, levels = c("Low income", "Low & middle income", "Lower middle income", "Upper middle income", "High income"))
+GDP_CO2Emissions %>%
+  filter(`Country Name` == "High income" | `Country Name` == "Upper middle income" | `Country Name` == "Lower middle income" | `Country Name` == "Low & middle income" | `Country Name` == "Low income") %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(y = GDP_per_cap), color = "green4") +
+  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4") +
+  facet_wrap(~`Country Name`, nrow = 1) +
+  scale_y_continuous(name = "GDP per Capita",
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
+  theme(axis.title.y = element_text(color = "green4"),
+        axis.title.y.right = element_text(color = "red4"))
+  
+```
+```{r plot_data5.5}
+# Plot & visualize data
+GDP_CO2Emissions$`Country Name` <- as.factor(GDP_CO2Emissions$`Country Name`)
+GDP_CO2Emissions$`Country Name` <- factor(GDP_CO2Emissions$`Country Name`, levels = c("Low income", "Low & middle income", "Lower middle income", "Upper middle income", "High income"))
+
+
+Totals_GDP_CO2Emissions_Regions %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(y = mean_GDP_per_cap), color = "green4") +
+  geom_line(aes(y = mean_CO2_m_tons_per_cap * 1500), color = "red4") +
+  facet_wrap(~region, nrow = 1) +
+  scale_y_continuous(name = "GDP per Capita",
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
+  theme(axis.title.y = element_text(color = "green4"),
+        axis.title.y.right = element_text(color = "red4"))
+  
+```
+
+```{r plot_data6}
+# Plot & visualize data
+remove <- c(
+"Arab World", "Caribbean small states",
+"Central Europe and the Baltics", "East Asia & Pacific",
+"East Asia & Pacific (excluding high income)",
+"Euro area", "Europe & Central Asia",
+"Europe & Central Asia (excluding high income)",
+"European Union", "Fragile and conflict affected situations",
+"Heavily indebted poor countries (HIPC)", "Latin America & Caribbean",
+"Latin America & Caribbean (excluding high income)",
+"Least developed countries: UN classification", "Middle East & North Africa",
+"Middle East & North Africa (excluding high income)",
+"North America", "OECD members", "Other small states",
+"Pacific island small states", "Small states", "South Asia",
+"Sub-Saharan Africa", "Sub-Saharan Africa (excluding high income)",
+"High income", "Low & middle income", "Low income",
+"Lower middle income", "Middle income", "Upper middle income",
+"Africa Eastern and Southern", "Africa Western and Central",
+"Early-demographic dividend", "IBRD only", "IDA & IBRD total", "IDA total",
+"IDA blend", "IDA only", "Late-demographic dividend", "Pre-demographic dividend",
+"Post-demographic dividend", "East Asia & Pacific (IDA & IBRD countries)",
+"Europe & Central Asia (IDA & IBRD countries)", "Latin America & the Caribbean (IDA & IBRD countries)",
+"Middle East & North Africa (IDA & IBRD countries)", "South Asia (IDA & IBRD)",
+"Sub-Saharan Africa (IDA & IBRD countries)", "World")
+
+GDP_CO2Emissions %>%
+  filter(!`Country Name` %in% remove, year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", , `Country Name` != "Qatar") %>%
+  ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
+  geom_point() +
+  geom_text_repel(aes(label = `Country Name`)) +
+  facet_wrap(~year, nrow = 1) +
+  geom_smooth()
+  
+```
+```{r plot_data5.9}
+# Plot & visualize data
+
+GDP_CO2Emissions_Regions %>%
+  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", `Country Name` != "Qatar", region != is.na(GDP_CO2Emissions_Regions$region)) %>%
+  ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
+  geom_smooth() +
+  geom_point(aes(color = region)) +
+  facet_wrap(~year, nrow = 1)
+  
+```
+
+```{r plot_data6}
+# Plot & visualize data
+
+GDP_CO2Emissions_Regions %>%
+  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", `Country Name` != "Qatar", region != is.na(GDP_CO2Emissions_Regions$region)) %>%
+  ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
+  geom_smooth() +
+  geom_point(aes(color = region)) +
+  facet_grid(vars(region), vars(year), scales = "free_y")
+  
+```
+
+### Conclusion
+
+## GDP per Capita and CO2 Emissions
+
+
+### Data Wrangling
+
+Here's the data set we have cleaned and prepared for our analysis:
+
+```{r tidy_data3}
+# Clean & wrangle data
+
+```
+### Summary Statistics
+
+```{r stats3}
+# Get Summary Statistics
+BEV %>% st()
+
+```
+
+### Data Visualization and Discussion
+
+```{r plot_data6}
 # Plot & visualize data
 
 ```
+
+
+```{r plot_data7}
+# Plot & visualize data
+
+```
+
+### Conclusion
