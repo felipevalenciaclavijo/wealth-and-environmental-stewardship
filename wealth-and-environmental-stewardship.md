@@ -403,7 +403,7 @@ BEV %>% ggplot(aes(x = importance_reduce_GGE)) +
         axis.title = element_text(color = "gray30", size = 16, family = "serif"),
         axis.text.x = element_text(color = "gray30", size = 14, family = "serif"),
         axis.text.y = element_text(color = "gray30", size = 14, family = "serif")) +
-  labs(title = "Distribution of attitudes toward sustainability", subtitle = "Owners of BEVs in California were asked about how important is reducing greenhouse gas emissions. \nMeasured with a continuous scale from -3= “Not important” to 3= “Important”", y = "Count", x = "Scale", caption = "Source: National Center for Sustainable Transportation\nhttps://doi.org/10.25338/B8P313")
+  labs(title = "Distribution of attitudes toward sustainability", subtitle = "Owners of BEVs in California were asked about how important is reducing greenhouse gas emissions. \nMeasured with a continuous scale from -3= “Not important” to 3= “Important”", y = "Count", x = "Not important                                                                                                                                                                                 Important", caption = "Source: National Center for Sustainable Transportation\nhttps://doi.org/10.25338/B8P313")
 ```
 
 ![](wealth-and-environmental-stewardship_files/figure-html/plot_data1-1.png)<!-- -->
@@ -472,9 +472,9 @@ First, it's relevant to say that _"Some High School"_ observations were removed 
 
 We recognized several patterns from the correlation between household income and the attitude towards environmental sustainability segmented by the highest educational level for the owners of BEVs in California. We can see that people with a higher level of education have, on average, a higher _"Important"_ score for the perception of reducing greenhouse gas emissions than those with a lower education level. Also, we discovered that more affluent people consider it less important than those with lower incomes when segmented by education level; However, we cannot be sure for the _High School Graduates_ group because the confidence interval is too large at the highest incomes. One of the reasons we might have this wide confidence interval for the perception of reducing GGE of the _High School Graduate_ group with the highest incomes is that we do not have enough observations for this group with these incomes.
 
-An important question to move forward in the analysis is why even the highly educated and wealthier owners of BEVs in California seem to care less about GGE than those at the same educational level but with less affluence, is there something they know that less affluent people in their educational level group don't know about reducing GGE, or is it something that has to do with the psyche of the wealthiest?
+An important question to move forward in the analysis is why the wealthier owners of BEVs in California seem to care less about GGE than those at the same educational level but with less affluence, is there something they know that less affluent people in their educational level group don't know about reducing GGE, or is it something that has to do with the psyche of the wealthiest?
 
-Since this wasn't a longitudinal study, we cannot conclude that as people get richer they care more or less about the environment, but we do see that owners of BEVs in California with higher incomes, (that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones) on average, care about reducing GGE, but they care less than less affluent owners.
+Since this wasn't a longitudinal study, we cannot conclude that as people get richer they CARE more or less about the environment, but we do see that owners of BEVs in California with higher incomes, (that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones) on average, CARE about reducing GGE, but they CARE less than less affluent owners.
 
 to further the analysis it will be interesting to find data from owners of fuel-based vehicles, to compare if there are differences with BEV owners in their perspectives and their incomes.
 
@@ -877,7 +877,7 @@ GDP_CO2Emissions %>%
 ```
 
 ![](wealth-and-environmental-stewardship_files/figure-html/plot_data4-1.png)<!-- -->
-As expected, by dividing the large regions into smaller regions, we found that North America was hit hard when grouped with _Latin America & Caribbean_. We saw that it has a higher GDP per capita than Europe and also supports the claim that _when people become richer their CO2 emissions are reduced_. Additionally, we can see that _Latin America & Caribbean_ have remained constant, but it tends to seem as if it's going down, we'll need to follow up on the evolution of _CO2 emissions in metric tons per capita_ in this region closer, this to be more conclusive with our analysis.
+As expected, by dividing the large regions into smaller regions, we found that North America was hit hard when grouped with _Latin America & Caribbean_. We saw that it has a higher GDP per capita than Europe and also supports the claim that _when people become richer their CO2 emissions are reduced_, however, the CO2 emissions in metric tons per capita are almost double that of Europe. Additionally, we can see that _Latin America & Caribbean_ have remained constant, but it tends to seem as if it's going down, we'll need to follow up on the evolution of _CO2 emissions in metric tons per capita_ in this region closer, this to be more conclusive with our analysis.
 
 Fortunately, the World Bank classifies countries by income as well, so we explored how _GDP per capita_ and _CO2 emissions in metric tons per capita_ behave under such categories.
 
@@ -957,7 +957,7 @@ GDP_CO2Emissions %>%
 ```
 
 ![](wealth-and-environmental-stewardship_files/figure-html/plot_data5.2-1.png)<!-- -->
-By looking at the first and last measurements, we noticed more than double _GDP per capita_ was required over 30 years to achieve a reduction of just over half a _metric ton per capita of CO2_.
+By looking at the first and last measurements, we noticed more than double _GDP per capita_ was increased over 30 years while the reduction of just over half a _metric ton per capita of CO2_ took the same amount of time.
 
 
 ```r
@@ -984,7 +984,7 @@ GDP_CO2Emissions_Regions %>%
         legend.text = element_text(color = "gray30", size = 14, family = "serif"),
         strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
         strip.background = element_rect(color = "white", fill = "white")) +
-  labs(title = "When people get richer, CO2 emissions decrease", subtitle = "Europeans are leading the race to reduce CO2 emissions in metric tons per capita", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
+  labs(title = "When people get richer, their CO2 emissions in metric tons decrease", subtitle = "Europeans are leading the race to reduce CO2 emissions in metric tons per capita", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
   guides(col = guide_legend(title = "Region"))
 ```
 
@@ -1018,26 +1018,26 @@ GDP_CO2Emissions_Regions %>%
         strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
         strip.text.y = element_text(color = "gray10", size = 14, family = "serif"),
         strip.background = element_rect(color = "white", fill = "white")) +
-  labs(title = "When people get richer, CO2 emissions decrease", subtitle = "At their scale, many countries in Europe and Asia followed by the Americas are reducing CO2 emissions (metric tons\nper capita) as their GDP per capita increases", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
+  labs(title = "When people get richer, their CO2 emissions in metric tons decrease", subtitle = "At their scale, many countries in Europe and Asia followed by the Americas are reducing CO2 emissions (metric tons\nper capita) as their GDP per capita increases", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
   guides(col = guide_legend(title = "Region"))
 ```
 
 ![](wealth-and-environmental-stewardship_files/figure-html/plot_data6.5-1.png)<!-- -->
 At their scale and on average, individuals in _Europe_ and _Asia_, followed by those from the _Americas_, are reducing _CO2 emissions (metric tons per capita)_ as their _GDP per capita_ increases. To further the analysis, each country could be reviewed over time to see how they are doing and if they are following the trend.
 
-Something important to mention is that the _per capita decrease in CO2 emissions is not a representation of how a country is doing in terms of its environmental impact and sustainability. Each country varies in population size, so a country that has relatively small _CO2 emissions (metric tons per capita)_ might impact a lot due to a large population.
+Something important to mention is that the _per capita decrease in CO2 emissions_ is not a representation of how a country is doing in terms of its environmental impact and sustainability. Each country varies in population size, so a country that has relatively small _CO2 emissions (metric tons per capita)_ might impact a lot due to a large population.
 
 The analysis we have done had the purpose of allowing us to see a pattern in the behavior of individuals represented by the _per capita average metrics_ we selected instead of a measurement of the countries' impact and efforts.
 
 ## Conclusions
 
-+ Among those in California that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones, on average care about reducing GGE, but the more affluent care less than less affluent owners.
-+ When distinguished by the highest level of education, we find the more educated owners of BEVs in California consider more important reducing GGE than less educated owners.
-+ When looking at the correlation between the household income in thousands and the mean importance of reducing GGE of BEV owners in California grouped by educational level, the wealthier and more educated care a little bit less than the less affluent.
-+ Europe and North America demonstrate that as people get richer they do more for the environment in terms of the reduction in CO2 emissions.
-+ Individuals in high-income countries also follow the pattern of a reduction in CO2 emissions as they got richer; However, the reduction is small and slow.
-+ Overall, the trend the world's individuals have had in the past 30 years is a decrease in _CO2 emissions (metric tons per capita)_ as they got richer.
-+ At their scale and on average, individuals in _Europe_ and _Asia_, followed by those from the _Americas_, are reducing _CO2 emissions (metric tons per capita)_ as their _GDP per capita_ increases.
++ Among those in California that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones, __on average CARE about reducing GGE__, but __the more affluent CARE less than less affluent owners__.
++ When distinguished by the highest level of education, we found __the most educated owners of BEVs in California consider more important reducing GGE than less educated owners__.
++ When looking at the correlation between the _household income in thousands_ and the _mean importance of reducing GGE_ of BEV owners in California grouped by educational level, __the wealthiest CARE a little bit less than the less affluent people in their educational level group__.
++ __Europe and North America show that as people get richer, they DO do something for the environment in terms of reducing CO2 emissions per capita__, but the amounts of _CO2 emissions (metric tons per capita)_ are still large compared to other countries. Despite that, __the pattern of the hypothesis is seen__.
++ __Individuals in high-income countries also follow the pattern of a reduction in CO2 emissions as they got richer__; However, the reduction is small and slow.
++ Overall, __the trend the world's individuals have had in the past 30 years is a decrease in CO2 emissions (metric tons per capita) as they got richer__.
++ At their scale and on average, __individuals in Europe and Asia, followed by those from the Americas, are reducing CO2 emissions (metric tons per capita) as their GDP per capita increases__.
 
 ## Impact on Actions and Decisions
 
@@ -1049,7 +1049,7 @@ I think that my visualizations impact actions and decisions. The data visualizat
 
 + __Clean & Wrangle:__ I used `filter()` and `select()` to get the data I needed. I used `str_replace_all()` to edit data and `mutate()` to compute data. I used `factor()` to custom order my factor data for better display of data in data visualizations. I used `pivot_longer()` to tidy data into a long form. I used `inner_join()` and `right_join()` to merge three data sets. I used `group_by()` and `summarise()` to aggregate data.
 
-+ __Plot & Visualize:__ I used `ggplot2` to create all my data visualizations for this project. I used `aes()` to define the aesthetics of my data visualizations. I used multiple geometries like `geom_line()`, `geom_smooth()`, `geom_histogram`, `geom_point()`, and `geom_text()`. I used facets with `facet_wrap()` and `facet_grid()`. I personalized my plots with `theme()` to my liking. I tried for the first time adding a secondary y-axis.
++ __Plot & Visualize:__ I used `ggplot2` to create all my data visualizations for this project. I used `aes()` to define the aesthetics of my data visualizations. I used multiple geometries like `geom_line()`, `geom_smooth()`, `geom_histogram()`, `geom_point()`, and `geom_text()`. I used facets with `facet_wrap()` and `facet_grid()`. I personalized my plots with `theme()` to my liking. I tried for the first time adding a secondary y-axis.
 
 + __Interpret:__ I used `sumtable()` to get summary statistics that helped me to understand and explain better the data sets and my data visualizations.
 
