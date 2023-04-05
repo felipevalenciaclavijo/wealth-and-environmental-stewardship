@@ -1,7 +1,7 @@
 ---
-title: "Wealth and Environmental Stewardship"
+title: "Is it true that _as people get richer, they care and do more for the environment?_"
 author: "Felipe Valencia"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
   html_document:  
     keep_md: true
@@ -11,6 +11,9 @@ output:
     fig_height: 6
     fig_width: 12
     fig_align: 'center'
+  pdf_document: default
+  github_document: default
+  html_notebook: default
 ---
 
 ```{r, echo=FALSE}
@@ -24,9 +27,10 @@ library(downloader)
 library(readxl)
 library(foreign)
 library(stringr)
-library(psych)
 library(vtable)
 library(ggrepel)
+library(scales)
+#Sys.setlocale("LC_TIME", "C")
 ```
 
 ```{r load_data}
@@ -75,36 +79,20 @@ unzip(temp_zip, exdir = temp_dir)
 # Read csv file using foreign package
 CO2_emissions <- read_csv(paste(temp_dir, "API_EN.ATM.CO2E.PC_DS2_en_csv_v2_5358914.csv", sep = "/"), skip = 3)
 
+############# ISO 3166 Countries with Regional Codes #############
+
 # Read csv of the ISO 3166 Countries with Regional Codes (taken from Luke Duncalfe's GitHub reop)
 countries_ISO3166 <- read.csv("https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes/blob/master/all/all.csv?raw=true")
 
 ```
 
-## Background
+## Executive Summary
 
-__My question:__ Is it true that _as people get wealthier, they care and do more for the environment?_.
+In this project, we tried to discover if people _CARE_ more about the environment and _DO_ something more for sustainability as they get richer. To gauge whether they _CARE_, we explored data from a survey of thousands of battery electric vehicle (BEV) owners in the US state of California. They are already helping the environment by owning an electric vehicle but we found that BEV owners with higher incomes care about reducing greenhouse gas emissions, but they care less than lower-income BEV owners. To assess whether people _DO_ something for environmental sustainability as they got richer, we explored the relationship between _GDP per capita_ and _CO2 emissions (metric tons per capita)_ over the years with data available from every country in the world.
 
-Here are the data sets I have found that I think will help me answer my question for this project:
+## CARE: Owners of BEVs in California
 
-+ [GDP per capita - current US dollars](https://data.worldbank.org/indicator/NY.GDP.PCAP.CD) from The World Bank.
-    + This data set contains the GDP per capita in current US dollars for almost all countries with data from 1960 to 2021. According to Investopedia GDP per capita _"measures the economic output of a nation per person. It seeks to determine the prosperity of a nation by economic growth per person in that nation. Per capita income measures the amount of money earned per person in a nation."_
-    + GDP per capita will be the socioeconomic metric.
-+ [CO2 emissions (metric tons per capita)](https://data.worldbank.org/indicator/EN.ATM.CO2E.PC) from The World Bank.
-    + This data set contains the CO2 emissions (metric tons per capita) for almost all countries with data from 1990 to 2019. The World Bank says: _"Carbon dioxide emissions are those stemming from the burning of fossil fuels and the manufacture of cement. They include carbon dioxide produced during consumption of solid, liquid, and gas fuels and gas flaring."_
-    + CO2 emissions (metric tons per capita) will be our environmental metric.
-+ [Encuestas de movilidad 2019](https://www.simur.gov.co/encuestas-de-movilidad) from Secretaría Distrital de Movilidad (SDM) of Bogota City Hall. (Bogota is the capital of Colombia)
-    + This data set has information about travels, people, households, vehicles, etc. It's from a survey conducted by request of the Bogota City Hall to _"characterizes the mobility of the population equal to or greater than 5 years of age residing in the urban area of Bogotá and 18 neighboring municipalities in its area of influence: Bojacá, Cajicá, Chía, Cota, El Rosal, Facatativá, Funza, Gachancipá, La Calera, Madrid, Mosquera, Sibaté, Soacha, Sopó, Tabio, Tenjo, Tocancipá and Zipaquirá."_
-    + This data set has the socioeconomic strata (to know the affluence) and types of vehicle (to see if there are EVs).
-+ [Sociodemographic data for battery electric vehicle owning households in California (From NCST Project "Understanding the Early Adopters of Fuel Cell Vehicles")](https://datadryad.org/stash/dataset/doi:10.25338/B8P313) from Scott Hardman of the University of California and published in DRYAD.
-    + This data set contains _"Sociodemographic data for fuel cell and battery electric vehicle owning households in California."_
-    + This data set is from owners of BEVs and FCVs in California, it has their estimated income and a score measuring their perception of the importance of reducing greenhouse gas emissions.
-+ [Number of passenger cars per adult in households, by household income. 2018-2019](https://www.ssb.no/en/transport-og-reiseliv/artikler-og-publikasjoner/the-wealthiest-bought-4-out-of-10-evs?tabell=417112) from the article by Statistics Norway called _"The wealthiest bought 4 out of 10 EVs"_.
-    + This data set contains data from 2018 and 2019 about the number of passenger cars per adult in households by household income, it has data on fossil cars and electric cars.
-    + This data set is already aggregated, therefore, there's not much to explore but it seems it can help solidify my answer.
-
-## Owners of BEVs in California
-
-This data set contains [Sociodemographic data for battery electric vehicle owning households in California (From NCST Project "Understanding the Early Adopters of Fuel Cell Vehicles")](https://doi.org/10.25338/B8P313). We are only going to focus on the: Information on vehicle owned, Household Income, Highest Level of Education, Age, Gender, Number of vehicles in the household, and a scale of the importance of reducing Greenhouse Gas Emissions (GGE). It contains around 906  Fuel-Cell Vehicles (FCV) respondents, but we are going to ignore them and focus on the results from Battery Electric Vehicle (BEV) respondents. We assume that those that own a BEV are _"environmentally friendly"_, and we are going to see if their wealth affects that perspective.
+This data set contains [Sociodemographic data for battery electric vehicle owning households in California (From NCST Project "Understanding the Early Adopters of Fuel Cell Vehicles")](https://doi.org/10.25338/B8P313). We are only going to focus on the: _Information on vehicle owned_, _Household Income_, _Highest Level of Education_, _Age_, _Gender_, _Number of vehicles in the household_, and a scale of the _importance of reducing Greenhouse Gas Emissions (GGE)_. It contains around 906 Fuel-Cell Vehicles (FCV) respondents data, but we ignore them to focus on the results from Battery Electric Vehicle (BEV) respondents. We assumed that those that own a BEV are _"environmentally friendly"_, and we are going to see if their wealth affects their perception of care for the environment.
 
 ### Data Wrangling
 
@@ -140,7 +128,7 @@ BEV
 
 ```{r stats1}
 # Get Summary Statistics
-BEV %>% st()
+BEV %>% st(title = "Owners of BEVs - socioeconomic variables and data on attitudes towards sustainability")
 
 ```
 
@@ -149,7 +137,7 @@ BEV %>% st()
 ```{r plot_data1}
 # Plot & visualize data
 BEV %>% ggplot(aes(x = importance_reduce_GGE)) +
-  geom_histogram(binwidth = 0.3, color = "green4", fill = "gray80") +
+  geom_histogram(binwidth = 0.35, color = "green4", fill = "gray80") +
   theme_classic() +
   scale_x_continuous(breaks = c(-3, -2, -1, 0, 1, 2, 3),
                      expand = expansion(mult = c(0, 0))) +
@@ -167,7 +155,7 @@ BEV %>% ggplot(aes(x = importance_reduce_GGE)) +
 ```
 Going back to the summary statistics table, the mean of this scale is around `1.7`, which tells us there's an attitude of care for the sustainability of the environment from owners of BEVs in California. With the histogram, we can see the majority of the respondents consider _"Important"_ to a certain extent reducing greenhouse gas emissions.
 
-Now, let's focus on the wealth of the owners of BEVs in California. According to the summary statistics, we have the majority of the respondents with an income between _$75k_ and _$225k_, but we have enough data for incomes greater than _$225k_ to see if on average people with higher income care more about the environment than those with lower incomes among those that we consider _"environmentally friendly"_ due to owning a BEV.
+According to the summary statistics, in terms of wealth, the majority of owners of BEVs in California have an income between _$75k_ and _$225k_, but we have enough data for incomes greater than _$225k_ to see if on average people with higher income care more about the environment than those with lower incomes among those that we consider _"environmentally friendly"_ due to owning a BEV.
 
 ```{r plot_data2}
 # Plot & visualize data
@@ -220,28 +208,23 @@ BEV %>%
         strip.background = element_rect(color = "white", fill = "white")) +
   labs(title = "Correlation between household income and attitude toward environmental sustainability\nby the highest level of education", subtitle = "Owners of BEVs in California were asked about how important is reducing greenhouse gas emissions. \nMeasured with a continuous scale from -3= “Not important” to 3= “Important”", y = "Mean importance of reducing GGE", x = "Income in thousands of dollars", caption = "Source: National Center for Sustainable Transportation\nhttps://doi.org/10.25338/B8P313")
 ```
-First, it's relevant to say that _"Some High School"_ observations were removed because they were too small __N=43__ to be accurate or significant for this analysis.
+First, it's relevant to say that _"Some High School"_ observations were removed because they were too small `N = 43` to be significant for the analysis.
 
-We can recognize several patterns from the correlation between household income and the attitude towards environmental sustainability segmented by the highest educational level for the owners of BEVs in California. We can see that people with a higher level of education have, on average, a higher "Important" score for the perception of reducing greenhouse gas emissions than those with a lower education level. Also, we discover that more affluent people consider it less important than those with lower incomes when segmented by education level; However, we cannot be sure for the _High School Graduates_ group because the confidence interval is too large at the highest incomes. One of the reasons we might have this wide confidence interval for the perception of reducing GGE of the _High School Graduate_ group with the highest incomes is that we do not have enough observations for this group with these incomes.
+We recognized several patterns from the correlation between household income and the attitude towards environmental sustainability segmented by the highest educational level for the owners of BEVs in California. We can see that people with a higher level of education have, on average, a higher _"Important"_ score for the perception of reducing greenhouse gas emissions than those with a lower education level. Also, we discovered that more affluent people consider it less important than those with lower incomes when segmented by education level; However, we cannot be sure for the _High School Graduates_ group because the confidence interval is too large at the highest incomes. One of the reasons we might have this wide confidence interval for the perception of reducing GGE of the _High School Graduate_ group with the highest incomes is that we do not have enough observations for this group with these incomes.
 
 An important question to move forward in the analysis is why even the highly educated and wealthier owners of BEVs in California seem to care less about GGE than those at the same educational level but with less affluence, is there something they know that less affluent people in their educational level group don't know about reducing GGE, or is it something that has to do with the psyche of the wealthiest?
 
-Since this wasn't a longitudinal study, we cannot conclude that as people get richer they care more or less about the environment, but we do see that owners of BEVs in California with higher incomes (that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones) on average care about reducing GGE, but they care less than less affluent owners.
+Since this wasn't a longitudinal study, we cannot conclude that as people get richer they care more or less about the environment, but we do see that owners of BEVs in California with higher incomes, (that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones) on average, care about reducing GGE, but they care less than less affluent owners.
 
-It's important to note that a limitation of this data set is that we don't have information about the attitude of owners of non-BEVs, like owners of fuel-based vehicles, to compare if there are differences in their perspectives and their incomes.
+to further the analysis it will be interesting to find data from owners of fuel-based vehicles, to compare if there are differences with BEV owners in their perspectives and their incomes.
 
-### Conclusion
+## DO: GDP and CO2 Emissions
 
-+ Among those in California that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones, on average care about reducing GGE, but the more affluent care less than less affluent owners.
-+ When distinguished by the highest level of education, we find the more educated owners of BEVs in California consider more important reducing GGE than less educated owners.
-+ When looking at the correlation between the household income in thousands and the mean importance of reducing GGE of BEV owners in California grouped by educational level, the wealthier and more educated care a little bit less than the less affluent.
-
-## GDP per Capita and CO2 Emissions
-
+The _GDP per capita_ and _CO2 emissions (metric tons per capita)_ data sets allowed us to see the correlation between people's wealth and reduced CO2 emissions. This helped us analyze whether as people get richer they do more for the environment.
 
 ### Data Wrangling
 
-Here's the data set we have cleaned and prepared for our analysis:
+Here are the data sets we have cleaned and prepared for our analysis:
 
 ```{r tidy_data2}
 # Clean & wrangle data
@@ -265,7 +248,8 @@ code_region <- countries_ISO3166 %>%
   select(alpha.3, region)
 
 # Join GDP per Capita and CO2 Emissions with the country regions
-GDP_CO2Emissions_Regions <- right_join(code_region, GDP_CO2Emissions, by = c("alpha.3" = "Country Code"))
+GDP_CO2Emissions_Regions <- right_join(code_region, GDP_CO2Emissions, by = c("alpha.3" = "Country Code")) %>%
+  filter(region != is.na(region))
 
 # Compute means for each region
 Totals_GDP_CO2Emissions_Regions <- GDP_CO2Emissions_Regions %>%
@@ -278,155 +262,262 @@ Totals_GDP_CO2Emissions_Regions <- GDP_CO2Emissions_Regions %>%
 
 ```{r stats2}
 # Get Summary Statistics
-GDP_CO2Emissions_Regions %>% st()
+GDP_CO2Emissions_Regions %>% st(title = "All years' data for each country with the region, GDP per capita, and CO2 emissions (metric tons per capita)")
 
-Totals_GDP_CO2Emissions_Regions %>% st()
+```
+
+```{r stats3}
+# Get Summary Statistics
+Totals_GDP_CO2Emissions_Regions %>% st(title = "All years' data for each region, mean GDP per capita and mean CO2 emissions (metric tons per capita)")
 
 ```
 
 ### Data Visualization and Discussion
+
+```{r plot_data5.5}
+# Plot & visualize data
+
+Totals_GDP_CO2Emissions_Regions %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(y = mean_GDP_per_cap), color = "green4", size = 1) +
+  geom_line(aes(y = mean_CO2_m_tons_per_cap * 1500), color = "red4", size = 1) +
+  facet_wrap(~region, nrow = 1) +
+  scale_y_continuous(name = "Mean GDP per capita (current US$)",
+                     breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000),
+                     label = comma,
+                     sec.axis = sec_axis(~.x /1500, name = "Mean CO2 emissions (metric tons per capita)")) +
+  theme_classic() +
+  scale_x_continuous(breaks = c(1990, 2000, 2010, 2019)) +
+  theme(axis.title.y = element_text(color = "green4"),
+        axis.title.y.right = element_text(color = "red4"),
+        panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif"),
+        strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.background = element_rect(color = "white", fill = "white")) +
+  labs(title = "Evolution of GDP per capita and CO2 emissions in metric tons per capita (5 regions)", subtitle = "Only Europe seems to follow the pattern that as people get richer their CO2 emissions decrease", x = "Year", caption = "Source: World Bank CC BY-4.0")
+  
+```
+Looking at the evolution of both metrics, we can determine that Europe follows the trend and we could say that __as people in Europe get richer, their CO2 emissions decrease__; however, this does not explain why, but it is a phenomenon that we observe. This pattern in Europe is in line with the initial hypothesis of this project.
+
+On the contrary, other large regions of the world do not follow this trend, but we cannot deny the hypothesis because none of the other regions has reached the GDP per capita growth of Europe, in the future when they reach a similar GDP per capita, we can compare them and determine whether or not this trend occurs when a region reaches a certain level of wealth.
+
+To deepen the analysis and take into consideration the fact that the regions have a wide range of rich and poor countries that will move the averages, we use smaller regions from the World Bank which could helped us see if the phenomenon was also present in smaller groups.
 
 ```{r plot_data4}
 # Plot & visualize data
 GDP_CO2Emissions %>%
   filter(`Country Name` == "North America" | `Country Name` == "Latin America & Caribbean" | `Country Name` == "Europe & Central Asia" | `Country Name` == "East Asia & Pacific" | `Country Name` == "South Asia" | `Country Name` == "Middle East & North Africa" | `Country Name` == "Sub-Saharan Africa") %>%
   ggplot(aes(x = year)) +
-  geom_line(aes(y = GDP_per_cap), color = "green4") +
-  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4") +
-  facet_wrap(~`Country Name`, nrow = 1) +
-  scale_y_continuous(name = "GDP per Capita",
-                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
+  geom_line(aes(y = GDP_per_cap), color = "green4", size = 1) +
+  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4", size = 1) +
+  facet_wrap(~`Country Name`, nrow = 1, labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  scale_y_continuous(name = "GDP per capita (current US$)",
+                     breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000),
+                     label = comma,
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 emissions (metric tons per capita)")) +
+  theme_classic() +
+  scale_x_continuous(breaks = c(1990, 2000, 2010, 2019)) +
   theme(axis.title.y = element_text(color = "green4"),
-        axis.title.y.right = element_text(color = "red4"))
+        axis.title.y.right = element_text(color = "red4"),
+        panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif"),
+        strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.background = element_rect(color = "white", fill = "white")) +
+  labs(title = "Evolution of GDP per capita and CO2 emissions in metric tons per capita (7 regions)", subtitle = "The richest regions in terms of GDP per capita, while having higher CO2 emissions in metric tons per capita, have\nexperienced a decline in CO2 emissions per capita since 1990.", x = "Year", caption = "Source: World Bank CC BY-4.0")
   
 ```
+As expected, by dividing the large regions into smaller regions, we found that North America was hit hard when grouped with _Latin America & Caribbean_. We saw that it has a higher GDP per capita than Europe and also supports the claim that _when people become richer their CO2 emissions are reduced_. Additionally, we can see that _Latin America & Caribbean_ have remained constant, but it tends to seem as if it's going down, we'll need to follow up on the evolution of _CO2 emissions in metric tons per capita_ in this region closer, this to be more conclusive with our analysis.
 
+Fortunately, the World Bank classifies countries by income as well, so we explored how _GDP per capita_ and _CO2 emissions in metric tons per capita_ behave under such categories.
 
 ```{r plot_data5}
 # Plot & visualize data
 GDP_CO2Emissions$`Country Name` <- as.factor(GDP_CO2Emissions$`Country Name`)
-GDP_CO2Emissions$`Country Name` <- factor(GDP_CO2Emissions$`Country Name`, levels = c("Low income", "Low & middle income", "Lower middle income", "Upper middle income", "High income"))
+GDP_CO2Emissions$`Country Name` <- factor(GDP_CO2Emissions$`Country Name`, levels = c("Low income", "Low & middle income", "Lower middle income", "Middle income", "Upper middle income", "High income"))
 GDP_CO2Emissions %>%
-  filter(`Country Name` == "High income" | `Country Name` == "Upper middle income" | `Country Name` == "Lower middle income" | `Country Name` == "Low & middle income" | `Country Name` == "Low income") %>%
+  filter(`Country Name` == "High income" | `Country Name` == "Upper middle income" | `Country Name` == "Middle income" | `Country Name` == "Lower middle income" | `Country Name` == "Low & middle income" | `Country Name` == "Low income") %>%
   ggplot(aes(x = year)) +
-  geom_line(aes(y = GDP_per_cap), color = "green4") +
-  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4") +
-  facet_wrap(~`Country Name`, nrow = 1) +
-  scale_y_continuous(name = "GDP per Capita",
-                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
+  geom_line(aes(y = GDP_per_cap), color = "green4", size = 1) +
+  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4", size = 1) +
+  facet_wrap(~`Country Name`, nrow = 1, labeller = label_wrap_gen(width = 15, multi_line = TRUE)) +
+  scale_y_continuous(name = "GDP per capita (current US$)",
+                     breaks = c(0, 10000, 20000, 30000, 40000),
+                     label = comma,
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 emissions (metric tons per capita)")) +
+  theme_classic() +
+  scale_x_continuous(breaks = c(1990, 2000, 2010, 2019)) +
   theme(axis.title.y = element_text(color = "green4"),
-        axis.title.y.right = element_text(color = "red4"))
+        axis.title.y.right = element_text(color = "red4"),
+        panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif"),
+        strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.background = element_rect(color = "white", fill = "white")) +
+  labs(title = "Evolution of GDP per capita and CO2 emissions in metric tons per capita (Income level)", subtitle = "High-income countries as they get richer in terms of GDP per capita experienced a reduction in CO2 emissions in\nmetric tons per capita.", x = "Year", caption = "Source: World Bank CC BY-4.0")
   
 ```
-```{r plot_data5.5}
+
+We can see that high-income countries follow the hypothesis, so we will expect that when other countries move to the high-income group, they'll experience a similar reduction in CO2 emissions in metric tons per capita.
+
+```{r plot_data5.2}
 # Plot & visualize data
-GDP_CO2Emissions$`Country Name` <- as.factor(GDP_CO2Emissions$`Country Name`)
-GDP_CO2Emissions$`Country Name` <- factor(GDP_CO2Emissions$`Country Name`, levels = c("Low income", "Low & middle income", "Lower middle income", "Upper middle income", "High income"))
 
-
-Totals_GDP_CO2Emissions_Regions %>%
-  ggplot(aes(x = year)) +
-  geom_line(aes(y = mean_GDP_per_cap), color = "green4") +
-  geom_line(aes(y = mean_CO2_m_tons_per_cap * 1500), color = "red4") +
-  facet_wrap(~region, nrow = 1) +
-  scale_y_continuous(name = "GDP per Capita",
-                     sec.axis = sec_axis(~.x /1500, name = "CO2 Emissions (Metric tons per Capita")) +
-  theme(axis.title.y = element_text(color = "green4"),
-        axis.title.y.right = element_text(color = "red4"))
-  
-```
-
-```{r plot_data6}
-# Plot & visualize data
-remove <- c(
-"Arab World", "Caribbean small states",
-"Central Europe and the Baltics", "East Asia & Pacific",
-"East Asia & Pacific (excluding high income)",
-"Euro area", "Europe & Central Asia",
-"Europe & Central Asia (excluding high income)",
-"European Union", "Fragile and conflict affected situations",
-"Heavily indebted poor countries (HIPC)", "Latin America & Caribbean",
-"Latin America & Caribbean (excluding high income)",
-"Least developed countries: UN classification", "Middle East & North Africa",
-"Middle East & North Africa (excluding high income)",
-"North America", "OECD members", "Other small states",
-"Pacific island small states", "Small states", "South Asia",
-"Sub-Saharan Africa", "Sub-Saharan Africa (excluding high income)",
-"High income", "Low & middle income", "Low income",
-"Lower middle income", "Middle income", "Upper middle income",
-"Africa Eastern and Southern", "Africa Western and Central",
-"Early-demographic dividend", "IBRD only", "IDA & IBRD total", "IDA total",
-"IDA blend", "IDA only", "Late-demographic dividend", "Pre-demographic dividend",
-"Post-demographic dividend", "East Asia & Pacific (IDA & IBRD countries)",
-"Europe & Central Asia (IDA & IBRD countries)", "Latin America & the Caribbean (IDA & IBRD countries)",
-"Middle East & North Africa (IDA & IBRD countries)", "South Asia (IDA & IBRD)",
-"Sub-Saharan Africa (IDA & IBRD countries)", "World")
+# labels
+first_and_last <- GDP_CO2Emissions %>%
+  filter(`Country Name` == "High income", year == 1990 | year == 2019) %>%
+  mutate(GDP_per_cap = round(GDP_per_cap, 0),
+         CO2_m_tons_per_cap = round(CO2_m_tons_per_cap, 1))
 
 GDP_CO2Emissions %>%
-  filter(!`Country Name` %in% remove, year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", , `Country Name` != "Qatar") %>%
-  ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
-  geom_point() +
-  geom_text_repel(aes(label = `Country Name`)) +
-  facet_wrap(~year, nrow = 1) +
-  geom_smooth()
+  filter(`Country Name` == "High income") %>%
+  ggplot(aes(x = year)) +
+  geom_line(aes(y = GDP_per_cap), color = "green4", size = 1) +
+  geom_line(aes(y = CO2_m_tons_per_cap * 1500), color = "red4", size = 1) +
+  geom_text(data = first_and_last, aes(x = year, y = GDP_per_cap, label = comma(GDP_per_cap)), nudge_y = 2000, color = "green4", size = 5, family = "serif") +
+  geom_point(data = first_and_last, aes(x = year, y = GDP_per_cap), color = "green4") +
+  geom_text(data = first_and_last, aes(x = year, y = CO2_m_tons_per_cap * 1500, label = CO2_m_tons_per_cap), nudge_y = -2000, color = "red4", size = 5, family = "serif") +
+  geom_point(data = first_and_last, aes(x = year, y = CO2_m_tons_per_cap * 1500), color = "red4") +
+  scale_y_continuous(name = "GDP per capita (current US$)",
+                     breaks = c(0, 10000, 20000, 30000, 40000),
+                     label = comma,
+                     sec.axis = sec_axis(~.x /1500, name = "CO2 emissions (metric tons per capita)")) +
+  coord_cartesian(ylim = c(0, 46500)) +
+  theme_classic() +
+  scale_x_continuous(breaks = c(1990, 2000, 2010, 2019)) +
+  theme(axis.title.y = element_text(color = "green4"),
+        axis.title.y.right = element_text(color = "red4"),
+        panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif"),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif")) +
+  labs(title = "When high-income countries get richer there is a reduction in CO2 emissions per capita", subtitle = "More than double GDP per capita was required over 30 years to achieve a reduction of just over half a metric ton per\ncapita of CO2", x = "Year", caption = "Source: World Bank CC BY-4.0")
   
 ```
+By looking at the first and last measurements, we noticed more than double _GDP per capita_ was required over 30 years to achieve a reduction of just over half a _metric ton per capita of CO2_.
+
 ```{r plot_data5.9}
 # Plot & visualize data
 
 GDP_CO2Emissions_Regions %>%
-  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", `Country Name` != "Qatar", region != is.na(GDP_CO2Emissions_Regions$region)) %>%
+  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, region != is.na(GDP_CO2Emissions_Regions$region)) %>%
   ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
-  geom_smooth() +
+  geom_smooth(color = "grey30") +
+  facet_wrap(~year, nrow = 1) +
   geom_point(aes(color = region)) +
-  facet_wrap(~year, nrow = 1)
+  theme_classic() +
+  scale_x_continuous(breaks = c(0, 75000, 150000),
+    label = comma) +
+  theme(panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif"),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif"),
+        legend.title = element_text(color = "gray10", size = 14, family = "serif", face = "bold"),
+        legend.text = element_text(color = "gray30", size = 14, family = "serif"),
+        strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.background = element_rect(color = "white", fill = "white")) +
+  labs(title = "When people get richer, CO2 emissions decrease", subtitle = "Europeans are leading the race to reduce CO2 emissions in metric tons per capita", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
+  guides(col = guide_legend(title = "Region"))
   
 ```
+Overall, the trend the world's individuals have had in the past 30 years is a decrease in _CO2 emissions (metric tons per capita)_ as they got richer.
 
-```{r plot_data6}
+```{r plot_data6.5, fig.height = 8}
 # Plot & visualize data
 
 GDP_CO2Emissions_Regions %>%
-  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, `Country Name` != "Liechtenstein", `Country Name` != "Luxembourg", `Country Name` != "Qatar", region != is.na(GDP_CO2Emissions_Regions$region)) %>%
+  filter(year == 1990 | year == 2000 | year == 2010 | year == 2019, region != is.na(GDP_CO2Emissions_Regions$region)) %>%
   ggplot(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
-  geom_smooth() +
+  geom_smooth(method = "loess", color = "grey30") +
   geom_point(aes(color = region)) +
-  facet_grid(vars(region), vars(year), scales = "free_y")
+  facet_grid(vars(region), vars(year), scales = "free_y") +
+  theme_classic() +
+  scale_x_continuous(breaks = c(0, 75000, 150000),
+    label = comma) +
+  theme(panel.grid.major.y = element_line(color = "gray", linetype = 1),
+        plot.title.position = "plot",
+        plot.title = element_text(size = 25, family = "serif", color = "black"),
+        plot.subtitle = element_text(size = 18, family = "serif", color = "gray30"),
+        plot.caption = element_text(hjust = 1, family = "serif", color = "gray30", size = 12),
+        axis.title = element_text(color = "gray30", size = 16, family = "serif"),
+        axis.text.x = element_text(color = "gray30", size = 14, family = "serif"),
+        axis.text.y = element_text(color = "gray30", size = 14, family = "serif"),
+        legend.title = element_text(color = "gray10", size = 14, family = "serif", face = "bold"),
+        legend.text = element_text(color = "gray30", size = 14, family = "serif"),
+        legend.position = "none",
+        strip.text.x = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.text.y = element_text(color = "gray10", size = 14, family = "serif"),
+        strip.background = element_rect(color = "white", fill = "white")) +
+  labs(title = "When people get richer, CO2 emissions decrease", subtitle = "At their scale, many countries in Europe and Asia followed by the Americas are reducing CO2 emissions (metric tons\nper capita) as their GDP per capita increases", y = "CO2 emissions (metric tons per capita)", x = "GDP per capita (current US$)", caption = "Source: World Bank CC BY-4.0") +
+  guides(col = guide_legend(title = "Region"))
   
 ```
+At their scale and on average, individuals in _Europe_ and _Asia_, followed by those from the _Americas_, are reducing _CO2 emissions (metric tons per capita)_ as their _GDP per capita_ increases. To further the analysis, each country could be reviewed over time to see how they are doing and if they are following the trend.
 
-### Conclusion
+Something important to mention is that the _per capita decrease in CO2 emissions is not a representation of how a country is doing in terms of its environmental impact and sustainability. Each country varies in population size, so a country that has relatively small _CO2 emissions (metric tons per capita)_ might impact a lot due to a large population.
 
-## GDP per Capita and CO2 Emissions
+The analysis we have done had the purpose of allowing us to see a pattern in the behavior of individuals represented by the _per capita average metrics_ we selected instead of a measurement of the countries' impact and efforts.
 
+### Conclusions
 
-### Data Wrangling
++ Among those in California that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones, on average care about reducing GGE, but the more affluent care less than less affluent owners.
++ When distinguished by the highest level of education, we find the more educated owners of BEVs in California consider more important reducing GGE than less educated owners.
++ When looking at the correlation between the household income in thousands and the mean importance of reducing GGE of BEV owners in California grouped by educational level, the wealthier and more educated care a little bit less than the less affluent.
++ Europe and North America demonstrate that as people get richer they do more for the environment in terms of the reduction in CO2 emissions.
++ Individuals in high-income countries also follow the pattern of a reduction in CO2 emissions as they got richer; However, the reduction is small and slow.
++ Overall, the trend the world's individuals have had in the past 30 years is a decrease in _CO2 emissions (metric tons per capita)_ as they got richer.
++ At their scale and on average, individuals in _Europe_ and _Asia_, followed by those from the _Americas_, are reducing _CO2 emissions (metric tons per capita)_ as their _GDP per capita_ increases.
 
-Here's the data set we have cleaned and prepared for our analysis:
+## Impact on Actions and Decisions
 
-```{r tidy_data3}
-# Clean & wrangle data
+I think that my visualizations impact actions and decisions. The data visualization on the _importance of reducing GGE_ and _income_ by educational level shows that as people receive higher education they _CARE_ more for the environment, so if we want to foster _CARE_ for the environment we should also support education. The data visualizations about _GDP per capita_ and _CO2 emission (metric tons per capita)_ show us that if we want people to _DO_ more for the environment in terms of reducing CO2 emissions, we might want to take them out of poverty fast so that they can _DO_ their part to reduce their emissions while still prospering.
 
-```
-### Summary Statistics
+### Techniques
 
-```{r stats3}
-# Get Summary Statistics
-BEV %>% st()
++ __Load data:__ I used temporary files, `unzip()`, and read from the web using the `raw=true` approach.
 
-```
++ __Clean & Wrangle:__ I used `filter()` and `select()` to get the data I needed. I used `str_replace_all()` to edit data and `mutate()` to compute data. I used `factor()` to custom order my factor data for better display of data in data visualizations. I used `pivot_longer()` to tidy data into a long form. I used `inner_join()` and `right_join()` to merge three data sets. I used `group_by()` and `summarise()` to aggregate data.
 
-### Data Visualization and Discussion
++ __Plot & Visualize:__ I used `ggplot2` to create all my data visualizations for this project. I used `aes()` to define the aesthetics of my data visualizations. I used multiple geometries like `geom_line()`, `geom_smooth()`, `geom_histogram`, `geom_point()`, and `geom_text()`. I used facets with `facet_wrap()` and `facet_grid()`. I personalized my plots with `theme()` to my liking. I tried for the first time adding a secondary y-axis.
 
-```{r plot_data6}
-# Plot & visualize data
++ __Interpret:__ I used `sumtable()` to get summary statistics that helped me to understand and explain better the data sets and my data visualizations.
 
-```
+## Appendix
 
+### Data Sources
 
-```{r plot_data7}
-# Plot & visualize data
+Here are the data sets we used for this project:
 
-```
-
-### Conclusion
++ [GDP per capita - current US dollars](https://data.worldbank.org/indicator/NY.GDP.PCAP.CD) from The World Bank.
+    + This data set contains the GDP per capita in current US dollars for almost all countries with data from 1960 to 2021. According to Investopedia GDP per capita _"measures the economic output of a nation per person. It seeks to determine the prosperity of a nation by economic growth per person in that nation. Per capita income measures the amount of money earned per person in a nation."_
+    + _GDP per capita_ is our socioeconomic metric.
++ [CO2 emissions (metric tons per capita)](https://data.worldbank.org/indicator/EN.ATM.CO2E.PC) from The World Bank.
+    + This data set contains the CO2 emissions (metric tons per capita) for almost all countries with data from 1990 to 2019. The World Bank says: _"Carbon dioxide emissions are those stemming from the burning of fossil fuels and the manufacture of cement. They include carbon dioxide produced during consumption of solid, liquid, and gas fuels and gas flaring."_
+    + _CO2 emissions (metric tons per capita)_ is our environmental metric.
++ [Sociodemographic data for battery electric vehicle owning households in California (From NCST Project "Understanding the Early Adopters of Fuel Cell Vehicles")](https://datadryad.org/stash/dataset/doi:10.25338/B8P313) from Scott Hardman of the University of California.
+    + This data set contains _"Sociodemographic data for fuel cell and battery electric vehicle owning households in California."_
+    + This data set is from owners of BEVs and FCVs in California, it has their estimated income and a score measuring their perception of the importance of reducing greenhouse gas emissions.

@@ -1,0 +1,68 @@
+---
+title: "to further the research"
+author: "Felipe Valencia"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
++ [Encuestas de movilidad 2019](https://www.simur.gov.co/encuestas-de-movilidad) from Secretaría Distrital de Movilidad (SDM) of Bogota City Hall. (Bogota is the capital of Colombia)
+    + This data set has information about travels, people, households, vehicles, etc. It's from a survey conducted by request of the Bogota City Hall to _"characterizes the mobility of the population equal to or greater than 5 years of age residing in the urban area of Bogotá and 18 neighboring municipalities in its area of influence: Bojacá, Cajicá, Chía, Cota, El Rosal, Facatativá, Funza, Gachancipá, La Calera, Madrid, Mosquera, Sibaté, Soacha, Sopó, Tabio, Tenjo, Tocancipá and Zipaquirá."_
+    + This data set has the socioeconomic strata (to know the affluence) and types of vehicle (to see if there are EVs).
+    
++ [Number of passenger cars per adult in households, by household income. 2018-2019](https://www.ssb.no/en/transport-og-reiseliv/artikler-og-publikasjoner/the-wealthiest-bought-4-out-of-10-evs?tabell=417112) from the article by Statistics Norway called _"The wealthiest bought 4 out of 10 EVs"_.
+    + This data set contains data from 2018 and 2019 about the number of passenger cars per adult in households by household income, it has data on fossil cars and electric cars.
+    + This data set is already aggregated, therefore, there's not much to explore but it seems it can help solidify my answer.
+    
+```{r plot_data6, include = FALSE}
+# Plot & visualize data
+remove <- c("Arab World", "Caribbean small states",
+"Central Europe and the Baltics", "East Asia & Pacific",
+"East Asia & Pacific (excluding high income)",
+"Euro area", "Europe & Central Asia",
+"Europe & Central Asia (excluding high income)",
+"European Union", "Fragile and conflict affected situations",
+"Heavily indebted poor countries (HIPC)", "Latin America & Caribbean",
+"Latin America & Caribbean (excluding high income)",
+"Least developed countries: UN classification", "Middle East & North Africa",
+"Middle East & North Africa (excluding high income)",
+"North America", "OECD members", "Other small states",
+"Pacific island small states", "Small states", "South Asia",
+"Sub-Saharan Africa", "Sub-Saharan Africa (excluding high income)",
+"High income", "Low & middle income", "Low income",
+"Lower middle income", "Middle income", "Upper middle income",
+"Africa Eastern and Southern", "Africa Western and Central",
+"Early-demographic dividend", "IBRD only", "IDA & IBRD total", "IDA total",
+"IDA blend", "IDA only", "Late-demographic dividend", "Pre-demographic dividend",
+"Post-demographic dividend", "East Asia & Pacific (IDA & IBRD countries)",
+"Europe & Central Asia (IDA & IBRD countries)", "Latin America & the Caribbean (IDA & IBRD countries)",
+"Middle East & North Africa (IDA & IBRD countries)", "South Asia (IDA & IBRD)",
+"Sub-Saharan Africa (IDA & IBRD countries)", "World")
+
+GDP_CO2Emissions_clean <- GDP_CO2Emissions %>%
+  filter(!`Country Name` %in% remove,
+         year == 1990 | year == 2000 | year == 2010 | year == 2019)
+         #!`Country Name` %in% c("Liechtenstein", "Luxembourg", "Qatar"))
+
+selected_countries <- GDP_CO2Emissions_clean %>%
+  filter(`Country Name` %in% c("Canada", "Switzerland", "Qatar", "Germany", "Norway"))
+
+  GDP_CO2Emissions_clean %>% ggplot() +
+  geom_point(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap)) +
+  geom_text_repel(data = selected_countries, aes(x = GDP_per_cap, y = CO2_m_tons_per_cap, label = `Country Name`), max.overlaps = 10) +
+    geom_point(data = selected_countries, aes(x = GDP_per_cap, y = CO2_m_tons_per_cap, color = `Country Name`)) +
+  geom_smooth(aes(x = GDP_per_cap, y = CO2_m_tons_per_cap), method = "loess") +
+  facet_wrap(~year, nrow = 1)
+  
+```
