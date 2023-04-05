@@ -480,7 +480,7 @@ to further the analysis it will be interesting to find data from owners of fuel-
 
 ## DO: GDP and CO2 Emissions
 
-The _GDP per capita_ and _CO2 emissions (metric tons per capita)_ data sets allowed us to see the correlation between people's wealth and reduced CO2 emissions. This helped us analyze whether as people get richer they do more for the environment.
+The _GDP per capita_ and _CO2 emissions (metric tons per capita)_ data sets allowed us to see the correlation between people's wealth and CO2 emissions. This helped us analyze whether as people get richer they do more for the environment.
 
 ### Data Wrangling
 
@@ -1029,7 +1029,7 @@ Something important to mention is that the _per capita decrease in CO2 emissions
 
 The analysis we have done had the purpose of allowing us to see a pattern in the behavior of individuals represented by the _per capita average metrics_ we selected instead of a measurement of the countries' impact and efforts.
 
-### Conclusions
+## Conclusions
 
 + Among those in California that are doing something good for the environment by using battery electric vehicles instead of fuel-based ones, on average care about reducing GGE, but the more affluent care less than less affluent owners.
 + When distinguished by the highest level of education, we find the more educated owners of BEVs in California consider more important reducing GGE than less educated owners.
@@ -1043,7 +1043,7 @@ The analysis we have done had the purpose of allowing us to see a pattern in the
 
 I think that my visualizations impact actions and decisions. The data visualization on the _importance of reducing GGE_ and _income_ by educational level shows that as people receive higher education they _CARE_ more for the environment, so if we want to foster _CARE_ for the environment we should also support education. The data visualizations about _GDP per capita_ and _CO2 emission (metric tons per capita)_ show us that if we want people to _DO_ more for the environment in terms of reducing CO2 emissions, we might want to take them out of poverty fast so that they can _DO_ their part to reduce their emissions while still prospering.
 
-### Techniques
+## Techniques
 
 + __Load data:__ I used temporary files, `unzip()`, and read from the web using the `raw=true` approach.
 
