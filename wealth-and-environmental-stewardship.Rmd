@@ -11,9 +11,6 @@ output:
     fig_height: 6
     fig_width: 12
     fig_align: 'center'
-  pdf_document: default
-  github_document: default
-  html_notebook: default
 ---
 
 ```{r, echo=FALSE}
@@ -242,6 +239,7 @@ CO2emissions_long <- CO2_emissions %>%
 # Join between GDP per Capita and CO2 Emissions tidy
 GDP_CO2Emissions <- inner_join(GDP_long, CO2emissions_long, by = c("Country Name", "Country Code", "year")) %>%
   mutate(year = as.double(year))
+GDP_CO2Emissions
 
 # Get country regions using ISO3166
 code_region <- countries_ISO3166 %>%
@@ -249,13 +247,15 @@ code_region <- countries_ISO3166 %>%
 
 # Join GDP per Capita and CO2 Emissions with the country regions
 GDP_CO2Emissions_Regions <- right_join(code_region, GDP_CO2Emissions, by = c("alpha.3" = "Country Code")) %>%
-  filter(region != is.na(region))
+  filter(region != is.na(region)) %>% tibble()
+GDP_CO2Emissions_Regions
 
 # Compute means for each region
 Totals_GDP_CO2Emissions_Regions <- GDP_CO2Emissions_Regions %>%
   group_by(region, year) %>%
   summarise(mean_GDP_per_cap = mean(GDP_per_cap),
             mean_CO2_m_tons_per_cap = mean(CO2_m_tons_per_cap))
+Totals_GDP_CO2Emissions_Regions
 
 ```
 ### Summary Statistics

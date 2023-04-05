@@ -11,9 +11,6 @@ output:
     fig_height: 6
     fig_width: 12
     fig_align: 'center'
-  pdf_document: default
-  github_document: default
-  html_notebook: default
 ---
 
 
@@ -506,20 +503,79 @@ CO2emissions_long <- CO2_emissions %>%
 # Join between GDP per Capita and CO2 Emissions tidy
 GDP_CO2Emissions <- inner_join(GDP_long, CO2emissions_long, by = c("Country Name", "Country Code", "year")) %>%
   mutate(year = as.double(year))
+GDP_CO2Emissions
+```
 
+```
+## # A tibble: 6,937 × 5
+##    `Country Name`              `Country Code`  year GDP_per_cap CO2_m_tons_per…¹
+##    <chr>                       <chr>          <dbl>       <dbl>            <dbl>
+##  1 Africa Eastern and Southern AFE             1990        817.            0.982
+##  2 Africa Eastern and Southern AFE             1991        858.            0.938
+##  3 Africa Eastern and Southern AFE             1992        729.            0.903
+##  4 Africa Eastern and Southern AFE             1993        705.            0.905
+##  5 Africa Eastern and Southern AFE             1994        697.            0.906
+##  6 Africa Eastern and Southern AFE             1995        763.            0.926
+##  7 Africa Eastern and Southern AFE             1996        739.            0.937
+##  8 Africa Eastern and Southern AFE             1997        758.            0.958
+##  9 Africa Eastern and Southern AFE             1998        696.            0.958
+## 10 Africa Eastern and Southern AFE             1999        670.            0.897
+## # … with 6,927 more rows, and abbreviated variable name ¹​CO2_m_tons_per_cap
+```
+
+```r
 # Get country regions using ISO3166
 code_region <- countries_ISO3166 %>%
   select(alpha.3, region)
 
 # Join GDP per Capita and CO2 Emissions with the country regions
 GDP_CO2Emissions_Regions <- right_join(code_region, GDP_CO2Emissions, by = c("alpha.3" = "Country Code")) %>%
-  filter(region != is.na(region))
+  filter(region != is.na(region)) %>% tibble()
+GDP_CO2Emissions_Regions
+```
 
+```
+## # A tibble: 5,497 × 6
+##    alpha.3 region `Country Name`  year GDP_per_cap CO2_m_tons_per_cap
+##    <chr>   <chr>  <chr>          <dbl>       <dbl>              <dbl>
+##  1 AFG     Asia   Afghanistan     2002        184.             0.0490
+##  2 AFG     Asia   Afghanistan     2003        200.             0.0539
+##  3 AFG     Asia   Afghanistan     2004        222.             0.0437
+##  4 AFG     Asia   Afghanistan     2005        255.             0.0635
+##  5 AFG     Asia   Afghanistan     2006        274.             0.0692
+##  6 AFG     Asia   Afghanistan     2007        375.             0.0683
+##  7 AFG     Asia   Afghanistan     2008        388.             0.135 
+##  8 AFG     Asia   Afghanistan     2009        444.             0.178 
+##  9 AFG     Asia   Afghanistan     2010        555.             0.252 
+## 10 AFG     Asia   Afghanistan     2011        622.             0.305 
+## # … with 5,487 more rows
+```
+
+```r
 # Compute means for each region
 Totals_GDP_CO2Emissions_Regions <- GDP_CO2Emissions_Regions %>%
   group_by(region, year) %>%
   summarise(mean_GDP_per_cap = mean(GDP_per_cap),
             mean_CO2_m_tons_per_cap = mean(CO2_m_tons_per_cap))
+Totals_GDP_CO2Emissions_Regions
+```
+
+```
+## # A tibble: 150 × 4
+## # Groups:   region [5]
+##    region  year mean_GDP_per_cap mean_CO2_m_tons_per_cap
+##    <chr>  <dbl>            <dbl>                   <dbl>
+##  1 Africa  1990            1098.                   0.819
+##  2 Africa  1991            1119.                   0.830
+##  3 Africa  1992            1112.                   0.841
+##  4 Africa  1993            1057.                   0.859
+##  5 Africa  1994             989.                   0.884
+##  6 Africa  1995            1066.                   0.925
+##  7 Africa  1996            1113.                   0.957
+##  8 Africa  1997            1128.                   0.965
+##  9 Africa  1998            1094.                   1.02 
+## 10 Africa  1999            1145.                   1.07 
+## # … with 140 more rows
 ```
 ### Summary Statistics
 
