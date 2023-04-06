@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/1024889/aa59f6870a474df28bf0c021c903c90c
+bundleId: https://api.rpubs.com/api/v1/document/1024889/aa59f6870a474df28bf0c021c903c90c
+url: http://rpubs.com/FelipeValencia/1024889
+when: 1680741059.92447
+lastSyncTime: 1680741059.9245
